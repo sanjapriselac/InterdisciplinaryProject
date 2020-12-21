@@ -11,11 +11,13 @@ Project in Interdisciplinary Project in Data Science
 *taken from https://snakemake.readthedocs.io/en/stable/snakefiles/deployment.html*
 
 *data*: data divided in the folders, here only source URL provided	
-genome: reference genome
-rna_seq: annotation 
- FASTQ: fastq files from Project: PRJNA255258
-additional: additional files (metadata about the project, needed for *preprocessing.R*)
+ * genome: reference genome
+ * rna_seq: annotation 
+ * FASTQ: fastq files from Project: PRJNA255258
+ * additional: additional files (metadata about the project, needed for *preprocessing.R*)
+
 *workflow*: files needed for executing the workflow, Snakemake file, the R scripts in *scripts* folder, .yaml environment specifications in *envs* folder
+
 *results*: partial results (no *output_index*, *output_transcripts.fa* and *kallisto* due to big file sizes), RData files in *R* folder and PCA and volcano plots in *plots* folder
 
 *config*: empty for now
