@@ -1,0 +1,74 @@
+FASTQ = ["SRR1515104", "SRR1515105", "SRR1515106", "SRR1515107", "SRR1515108", "SRR1515109", "SRR1515110", "SRR1515111", "SRR1515112", "SRR1515113", "SRR1515114", "SRR1515115", "SRR1515116", "SRR1515117", "SRR1515118", "SRR1515119"]
+
+rule all:
+    input: expand("/tmp/repo/DGE_snakemake/results/R/{data}", data=["treatmentGenes.RData", "resistanceGenes.RData"])
+
+rule gffread:
+    input:
+        gtf = "/tmp/repo/DGE_snakemake/data/rna_seq/Drosophila_melanogaster.BDGP6.28.101.gtf",
+        fa = "/tmp/repo/DGE_snakemake/data/genome/"
+    output:
+        "/tmp/repo/DGE_snakemake/results/output_transcripts.fa"
+    conda:
+        "/tmp/repo/DGE_snakemake/workflow/envs/ps_alignment.yaml"
+    shell:
+        "gffread {input.gtf} -g {input.fa} -w {output}"
+
+rule kallisto_build:
+    input:
+        "/tmp/repo/DGE_snakemake/results/output_transcripts.fa"
+    output:
+        "/tmp/repo/DGE_snakemake/results/output_index"
+    conda:
+        "/tmp/repo/DGE_snakemake/workflow/envs/ps_alignment.yaml"
+    shell:
+        "kallisto index -i {output} {input}"
+
+rule kallisto_quant:
+    input:
+        oi = "/tmp/repo/DGE_snakemake/results/output_index",
+        #fq = lambda wildcards: config["FASTQ"][wildcards.fastq]
+        fq = "/tmp/repo/DGE_snakemake/data/FASTQ/{fastq}.fastq.gz"
+    output:
+        "/tmp/repo/DGE_snakemake/results/kallisto/{fastq}"
+    conda:
+        "/tmp/repo/DGE_snakemake/workflow/envs/ps_alignment.yaml"
+    shell:
+        "kallisto quant -i {input.oi} --single -l 200 -s 30 -o {output} {input.fq}"
+
+rule preprocessing:
+    input:
+        "/tmp/repo/DGE_snakemake/results/kallisto"
+    output:
+        "/tmp/repo/DGE_snakemake/results/R/samples.RData",
+        "/tmp/repo/DGE_snakemake/results/R/txi.RData"
+    conda:
+        "/tmp/repo/DGE_snakemake/workflow/envs/R_env.yaml"
+    script:
+        #shell("chmod +x /tmp/repo/DGE_snakemake/workflow/scripts/preprocessing.R")
+        "/tmp/repo/DGE_snakemake/workflow/scripts/preprocessing.R"
+
+rule normalisation:
+    input:
+        "/tmp/repo/DGE_snakemake/results/R/samples.RData",
+        "/tmp/repo/DGE_snakemake/results/R/txi.RData"
+    output:
+        "/tmp/repo/DGE_snakemake/results/R/filteredExpr.RData",
+        "/tmp/repo/DGE_snakemake/results/R/y.RData"
+    conda:
+        "/tmp/repo/DGE_snakemake/workflow/envs/R_env.yaml"
+    script:
+        "/tmp/repo/DGE_snakemake/workflow/scripts/normalisation.R"
+
+rule DGEa:
+    input:
+        "/tmp/repo/DGE_snakemake/results/R/filteredExpr.RData",
+        "/tmp/repo/DGE_snakemake/results/R/y.RData",
+        "/tmp/repo/DGE_snakemake/results/R/samples.RData"
+    output:
+        "/tmp/repo/DGE_snakemake/results/R/treatmentGenes.RData",
+        "/tmp/repo/DGE_snakemake/results/R/resistanceGenes.RData"
+    conda:
+        "/tmp/repo/DGE_snakemake/workflow/envs/R_env.yaml"
+    script:
+        "/tmp/repo/DGE_snakemake/workflow/scripts/dgea.R"
