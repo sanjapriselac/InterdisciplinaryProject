@@ -1,7 +1,7 @@
 FASTQ = ["SRR1515104", "SRR1515105", "SRR1515106", "SRR1515107", "SRR1515108", "SRR1515109", "SRR1515110", "SRR1515111", "SRR1515112", "SRR1515113", "SRR1515114", "SRR1515115", "SRR1515116", "SRR1515117", "SRR1515118", "SRR1515119"]
 
 rule all:
-    input: expand("/tmp/repo/DGE_snakemake/results/R/{data}", data=["treatmentGenes.RData", "resistanceGenes.RData"])
+    input: expand("/tmp/repo/DGE_snakemake/results/R/{data}", data=["treatmentInRGenes.csv", "treatmentInSGenes.csv", "treatmentGenes.csv", "resistanceInCGenes.csv", "resistanceInUGenes.csv", "resistanceGenes.csv"])
 
 rule gffread:
     input:
@@ -66,8 +66,12 @@ rule DGEa:
         "/tmp/repo/DGE_snakemake/results/R/y.RData",
         "/tmp/repo/DGE_snakemake/results/R/samples.RData"
     output:
-        "/tmp/repo/DGE_snakemake/results/R/treatmentGenes.RData",
-        "/tmp/repo/DGE_snakemake/results/R/resistanceGenes.RData"
+        "/tmp/repo/DGE_snakemake/results/R/treatmentInRGenes.csv",
+        "/tmp/repo/DGE_snakemake/results/R/treatmentInSGenes.csv",
+        "/tmp/repo/DGE_snakemake/results/R/treatmentGenes.csv",
+        "/tmp/repo/DGE_snakemake/results/R/resistanceInCGenes.csv",
+        "/tmp/repo/DGE_snakemake/results/R/resistanceInUGenes.csv",
+        "/tmp/repo/DGE_snakemake/results/R/resistanceGenes.csv"
     conda:
         "/tmp/repo/DGE_snakemake/workflow/envs/R_env.yaml"
     script:

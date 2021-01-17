@@ -38,23 +38,21 @@ fit2 <- eBayes(fit2)
 results <- decideTests(fit2, p.value=0.1) 
 summary(results)
 
-#volcanoplot(fit2, coef = 1, highlight = 0)
-# fit2 for vulcano plot
-# coeff: treatment in S, treatment in ...
-
+# i corresponds to the coeff, meaning the contrasts
 volcano_plot <- function (i) {
-  #xx <- as.matrix(fit2$coefficients)[,1] #same
-  xx <- as.matrix(fit2@.Data[[1]][, i])
+  table <- topTable(fit2, coef=i, number=Inf, sort.by="P")
+  gene_names <- attributes(table)$row.names   
+  xx <- table$logFC
   name <- names(fit2$contrasts[1,])[i]
-  yy <- as.matrix(fit2$p.value)[,i]
+  yy <- table$adj.P.Val
   yy <- -log10(yy)
-  result <- results@.Data[,i]
+  result <- results@.Data[gene_names,i]
   data <- data.frame(xx, yy, result)
   p <- ggplot(data, aes(x=xx, y=yy, col=result)) + 
     geom_point(size = 0.7) +
     theme_minimal() +
-    xlab(paste("Coefficients for", name)) +
-    ylab("-log10(p.value)") +
+    xlab(paste("Log folds for", name)) +
+    ylab("-log10(adj.p.value)") +
     ggtitle(paste0("Volcano plot for ", name))
   return(p)  
 }
@@ -72,29 +70,23 @@ ggsave(paste0("volcanoPlot_",names(fit2$contrasts[1,])[5], '.pdf'), plot=p5, pat
 p6 <- volcano_plot(6)
 ggsave(paste0("volcanoPlot_",names(fit2$contrasts[1,])[6], '.pdf'), plot=p6, path="/tmp/repo/DGE_snakemake/results/plots")
 
-#vennDiagram(results[,c(1,2)])
-#vennDiagram(results[,c(2,5)])
-#vennDiagram(results[,c(2,6)])
-
 ###################################
 # Extraction of differentially expressed genes
 ###################################
 
 ## Treatment:
-treatmentGenes <- topTable(fit2, coef=3, p.value=0.1, number=Inf, sort.by="P")
-
-## visualize the top 100 genes
-#selectedExpression <- filteredExpr[rownames(treatmentGenes)[1:100],]
-#heatmap.2(selectedExpression, scale="none", col = colors, margins = c(14, 6), trace='none', denscol="white", 
-#          ColSideColors=myPalette[3:4][as.integer(as.factor(samples$treatment))])
+treatmentInRGenes <- topTable(fit2, coef=1, number=Inf, sort.by="P")
+treatmentInSGenes <- topTable(fit2, coef=2, number=Inf, sort.by="P")
+treatmentGenes <- topTable(fit2, coef=3, number=Inf, sort.by="P") 
 
 ## Resistance:
-resistanceGenes <- topTable(fit2, coef=6, p.value=0.1, number=Inf, sort.by="P")
+resistanceInCGenes <- topTable(fit2, coef=4, number=Inf, sort.by="P")
+resistanceInUGenes <- topTable(fit2, coef=5, number=Inf, sort.by="P")
+resistanceGenes <- topTable(fit2, coef=6, number=Inf, sort.by="P")
 
-## visualize all DE genes
-#selectedExpression <- filteredExpr[rownames(resistanceGenes),]
-#heatmap.2(selectedExpression, scale="none", col = colors, margins = c(14, 6), trace='none', denscol="white", 
-#          ColSideColors=myPalette[1:2][as.integer(as.factor(samples$resistance))])
-
-save(treatmentGenes, file=snakemake@output[[1]])
-save(resistanceGenes, file=snakemake@output[[2]])
+write.csv(treatmentInRGenes, file=snakemake@output[[1]])
+write.csv(treatmentInSGenes, file=snakemake@output[[2]])
+write.csv(treatmentGenes, file=snakemake@output[[3]])
+write.csv(resistanceInCGenes, file=snakemake@output[[4]])
+write.csv(resistanceInUGenes, file=snakemake@output[[5]])
+write.csv(resistanceGenes, file=snakemake@output[[6]])
