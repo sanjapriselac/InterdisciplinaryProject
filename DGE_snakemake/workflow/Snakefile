@@ -1,8 +1,15 @@
 FASTQ = ["SRR1515104", "SRR1515105", "SRR1515106", "SRR1515107", "SRR1515108", "SRR1515109", "SRR1515110", "SRR1515111", "SRR1515112", "SRR1515113", "SRR1515114", "SRR1515115", "SRR1515116", "SRR1515117", "SRR1515118", "SRR1515119"]
+YS = ["y_qn", "y_05", "y_1", "y_25", "y_5", "y_10"]
+FEXPR = ["filteredExpr", "filteredExpr_05", "filteredExpr_1", "filteredExpr_25", "filteredExpr_5", "filteredExpr_10"]
+TINR = ["treatmentInRGenes", "treatmentInRGenes_05", "treatmentInRGenes_1", "treatmentInRGenes_25", "treatmentInRGenes_5", "treatmentInRGenes_10"]
+TINS = ["treatmentInSGenes", "treatmentInSGenes_05", "treatmentInSGenes_1", "treatmentInSGenes_25", "treatmentInSGenes_5", "treatmentInSGenes_10"]
+T = ["treatmentGenes", "treatmentGenes_05", "treatmentGenes_1", "treatmentGenes_25", "treatmentGenes_5", "treatmentGenes_10"]
+RINC = ["resistanceInCGenes", "resistanceInCGenes_05", "resistanceInCGenes_1", "resistanceInCGenes_25", "resistanceInCGenes_5", "resistanceInCGenes_10"]
+RINU = ["resistanceInUGenes", "resistanceInUGenes_05", "resistanceInUGenes_1", "resistanceInUGenes_25", "resistanceInUGenes_5", "resistanceInUGenes_10"]
+RES = ["resistanceGenes", "resistanceGenes_05", "resistanceGenes_1", "resistanceGenes_25", "resistanceGenes_5", "resistanceGenes_10"]
 
 rule all:
-    input: expand("/tmp/repo/DGE_snakemake/results/R/{data}", data=["treatmentInRGenes.csv", "treatmentInSGenes.csv", "treatmentGenes.csv", "resistanceInCGenes.csv", "resistanceInUGenes.csv", "resistanceGenes.csv"])
-
+    input: expand("/tmp/repo/DGE_snakemake/results/R/{data}.csv", data=["treatmentInRGenes", "treatmentInRGenes_05", "treatmentInRGenes_1", "treatmentInRGenes_25", "treatmentInRGenes_5", "treatmentInRGenes_10", "treatmentInSGenes", "treatmentInSGenes_05", "treatmentInSGenes_1", "treatmentInSGenes_25", "treatmentInSGenes_5", "treatmentInSGenes_10", "treatmentGenes", "treatmentGenes_05", "treatmentGenes_1", "treatmentGenes_25", "treatmentGenes_5", "treatmentGenes_10", "resistanceInCGenes", "resistanceInCGenes_05", "resistanceInCGenes_1", "resistanceInCGenes_25", "resistanceInCGenes_5", "resistanceInCGenes_10", "resistanceInUGenes", "resistanceInUGenes_05", "resistanceInUGenes_1", "resistanceInUGenes_25", "resistanceInUGenes_5", "resistanceInUGenes_10", "resistanceGenes", "resistanceGenes_05", "resistanceGenes_1", "resistanceGenes_25", "resistanceGenes_5", "resistanceGenes_10"])
 rule gffread:
     input:
         gtf = "/tmp/repo/DGE_snakemake/data/rna_seq/Drosophila_melanogaster.BDGP6.28.101.gtf",
@@ -43,7 +50,7 @@ rule preprocessing:
         "/tmp/repo/DGE_snakemake/results/R/samples.RData",
         "/tmp/repo/DGE_snakemake/results/R/txi.RData"
     conda:
-        "/tmp/repo/DGE_snakemake/workflow/envs/R_env.yaml"
+        "/tmp/repo/DGE_snakemake/workflow/envs/Renv.yaml"
     script:
         #shell("chmod +x /tmp/repo/DGE_snakemake/workflow/scripts/preprocessing.R")
         "/tmp/repo/DGE_snakemake/workflow/scripts/preprocessing.R"
@@ -53,26 +60,18 @@ rule normalisation:
         "/tmp/repo/DGE_snakemake/results/R/samples.RData",
         "/tmp/repo/DGE_snakemake/results/R/txi.RData"
     output:
-        "/tmp/repo/DGE_snakemake/results/R/filteredExpr.RData",
-        "/tmp/repo/DGE_snakemake/results/R/y.RData"
+        expand(["/tmp/repo/DGE_snakemake/results/R/{ys}.RData", "/tmp/repo/DGE_snakemake/results/R/{fexpr}.RData"], ys=YS, fexpr = FEXPR)
     conda:
-        "/tmp/repo/DGE_snakemake/workflow/envs/R_env.yaml"
+        "/tmp/repo/DGE_snakemake/workflow/envs/Renv.yaml"
     script:
         "/tmp/repo/DGE_snakemake/workflow/scripts/normalisation.R"
 
 rule DGEa:
     input:
-        "/tmp/repo/DGE_snakemake/results/R/filteredExpr.RData",
-        "/tmp/repo/DGE_snakemake/results/R/y.RData",
-        "/tmp/repo/DGE_snakemake/results/R/samples.RData"
+        expand(["/tmp/repo/DGE_snakemake/results/R/{ys}.RData", "/tmp/repo/DGE_snakemake/results/R/{fexpr}.RData", "/tmp/repo/DGE_snakemake/results/R/samples.RData"], ys=YS, fexpr = FEXPR)
     output:
-        "/tmp/repo/DGE_snakemake/results/R/treatmentInRGenes.csv",
-        "/tmp/repo/DGE_snakemake/results/R/treatmentInSGenes.csv",
-        "/tmp/repo/DGE_snakemake/results/R/treatmentGenes.csv",
-        "/tmp/repo/DGE_snakemake/results/R/resistanceInCGenes.csv",
-        "/tmp/repo/DGE_snakemake/results/R/resistanceInUGenes.csv",
-        "/tmp/repo/DGE_snakemake/results/R/resistanceGenes.csv"
+        expand(["/tmp/repo/DGE_snakemake/results/R/{tinr}.csv", "/tmp/repo/DGE_snakemake/results/R/{tins}.csv", "/tmp/repo/DGE_snakemake/results/R/{t}.csv", "/tmp/repo/DGE_snakemake/results/R/{rinc}.csv", "/tmp/repo/DGE_snakemake/results/R/{rinu}.csv", "/tmp/repo/DGE_snakemake/results/R/{res}.csv"], tinr = TINR, tins=TINS, t=T, rinc = RINC, rinu = RINU, res = RES)
     conda:
-        "/tmp/repo/DGE_snakemake/workflow/envs/R_env.yaml"
+        "/tmp/repo/DGE_snakemake/workflow/envs/Renv.yaml"
     script:
         "/tmp/repo/DGE_snakemake/workflow/scripts/dgea.R"
