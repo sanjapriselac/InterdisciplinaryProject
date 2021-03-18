@@ -9,7 +9,9 @@ RINU = ["resistanceInUGenes", "resistanceInUGenes_05", "resistanceInUGenes_1", "
 RES = ["resistanceGenes", "resistanceGenes_05", "resistanceGenes_1", "resistanceGenes_25", "resistanceGenes_5", "resistanceGenes_10"]
 
 rule all:
-    input: expand("/tmp/repo/DGE_snakemake/results/R/{data}.csv", data=["treatmentInRGenes", "treatmentInRGenes_05", "treatmentInRGenes_1", "treatmentInRGenes_25", "treatmentInRGenes_5", "treatmentInRGenes_10", "treatmentInSGenes", "treatmentInSGenes_05", "treatmentInSGenes_1", "treatmentInSGenes_25", "treatmentInSGenes_5", "treatmentInSGenes_10", "treatmentGenes", "treatmentGenes_05", "treatmentGenes_1", "treatmentGenes_25", "treatmentGenes_5", "treatmentGenes_10", "resistanceInCGenes", "resistanceInCGenes_05", "resistanceInCGenes_1", "resistanceInCGenes_25", "resistanceInCGenes_5", "resistanceInCGenes_10", "resistanceInUGenes", "resistanceInUGenes_05", "resistanceInUGenes_1", "resistanceInUGenes_25", "resistanceInUGenes_5", "resistanceInUGenes_10", "resistanceGenes", "resistanceGenes_05", "resistanceGenes_1", "resistanceGenes_25", "resistanceGenes_5", "resistanceGenes_10"])
+    input:
+        "/tmp/repo/DGE_snakemake/results/R/rankTests.csv"
+    #expand("/tmp/repo/DGE_snakemake/results/R/{data}.csv", data=["treatmentInRGenes", "treatmentInRGenes_05", "treatmentInRGenes_1", "treatmentInRGenes_25", "treatmentInRGenes_5", "treatmentInRGenes_10", "treatmentInSGenes", "treatmentInSGenes_05", "treatmentInSGenes_1", "treatmentInSGenes_25", "treatmentInSGenes_5", "treatmentInSGenes_10", "treatmentGenes", "treatmentGenes_05", "treatmentGenes_1", "treatmentGenes_25", "treatmentGenes_5", "treatmentGenes_10", "resistanceInCGenes", "resistanceInCGenes_05", "resistanceInCGenes_1", "resistanceInCGenes_25", "resistanceInCGenes_5", "resistanceInCGenes_10", "resistanceInUGenes", "resistanceInUGenes_05", "resistanceInUGenes_1", "resistanceInUGenes_25", "resistanceInUGenes_5", "resistanceInUGenes_10", "resistanceGenes", "resistanceGenes_05", "resistanceGenes_1", "resistanceGenes_25", "resistanceGenes_5", "resistanceGenes_10"])
 rule gffread:
     input:
         gtf = "/tmp/repo/DGE_snakemake/data/rna_seq/Drosophila_melanogaster.BDGP6.28.101.gtf",
@@ -75,3 +77,13 @@ rule DGEa:
         "/tmp/repo/DGE_snakemake/workflow/envs/Renv.yaml"
     script:
         "/tmp/repo/DGE_snakemake/workflow/scripts/dgea.R"
+
+rule analysis:
+    input:
+        expand([ "/tmp/repo/DGE_snakemake/results/R/{t}.csv", "/tmp/repo/DGE_snakemake/results/R/{res}.csv"], t=T, res = RES)
+    output:
+        "/tmp/repo/DGE_snakemake/results/R/rankTests.csv"
+    conda:
+        "/tmp/repo/DGE_snakemake/workflow/envs/Renv.yaml"
+    script:
+        "/tmp/repo/DGE_snakemake/workflow/scripts/results_analysis.R"

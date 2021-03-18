@@ -1,6 +1,6 @@
 #!/opt/conda/envs/R_env/bin/Rscript --vanilla
 # Sanja Priselac
-# 02/03/2021
+# 17/03/2021
 
 ########################
 library(edgeR)
@@ -22,12 +22,15 @@ y <- DGEList(txi$counts)
 # Quantile normalisation function 
 ############################################################################################
 
-quartileNormalisation <- function(y) {
+quartileNormalisation <- function(y, filepath, save=TRUE) {
   ## y is DGEList object
   # save the indices of the sort
   orders <- apply(y$counts, 2, order, decreasing = TRUE)
   x.sort <- apply(y$counts, 2, sort, decreasing = TRUE)
   r.means <- rowMeans(x.sort)
+  if (save) {
+    write.csv(r.means, file=filepath, row.names=FALSE)
+  }
   for (i in 1:ncol(x.sort)) {
     y$counts[orders[, i], i] <- r.means
   }
@@ -38,7 +41,7 @@ quartileNormalisation <- function(y) {
 # Laplace Quantile normalisation function 
 ############################################################################################
 
-quartileNormalisation.dp <- function(y, b, seed=100) {
+quartileNormalisation.dp <- function(y, b, filepath, seed=100) {
   ## y is DGEList object
   # save the indices of the sort
   orders <- apply(y$counts, 2, order, decreasing = TRUE)
@@ -55,6 +58,7 @@ quartileNormalisation.dp <- function(y, b, seed=100) {
     warning(cat(length(negatives), 'r.means values negative and set to 0'))
     r.means[negatives] <- 0
   }
+  write.csv(r.means, file=filepath, row.names=FALSE)
   for (i in 1:ncol(x.sort)) {
     y$counts[orders[, i], i] <- r.means
   }
@@ -65,7 +69,7 @@ quartileNormalisation.dp <- function(y, b, seed=100) {
 ############################################################################################
 
 
-y.qn <- quartileNormalisation(y)
+y.qn <- quartileNormalisation(y, 'not_important', save=FALSE)
 unfilteredExpr <- cpm(y.qn, log=T)
 #plotDensities(unfilteredExpr, col=myPalette[1:16], legend=FALSE)
 
@@ -80,13 +84,20 @@ selectedGenes <- names(which(numSamplesWithExpression >= 8))
 # rebuild a new DGE object using only selected genes, and renormalize it
 y <- DGEList(txi$counts[selectedGenes, ]) 
 
-y_qn <- quartileNormalisation(y)
+## calculate sensitivity and the vector b 
+x.sort <- apply(y$counts, 2, sort, decreasing = TRUE)
+sensitivity <- sum(apply(x.sort, 1, max) - apply(x.sort, 1, min))/ncol(x.sort)
+cat('sensitivity is', sensitivity)
+eps <- c(0.05, 0.1, 1, 5, 10)
+b <- floor(sensitivity/eps)
+
+y_qn <- quartileNormalisation(y, "/tmp/repo/DGE_snakemake/results/R/meanVectorQN.csv")
 ## calculate laplacian 
-y_05 <- quartileNormalisation.dp(y, 0.5)
-y_1 <- quartileNormalisation.dp(y, 1)
-y_25 <- quartileNormalisation.dp(y, 2.5)
-y_5 <- quartileNormalisation.dp(y, 5)
-y_10 <- quartileNormalisation.dp(y, 10)
+y_05 <- quartileNormalisation.dp(y, b[1], "/tmp/repo/DGE_snakemake/results/R/meanVectorB1.csv")
+y_1 <- quartileNormalisation.dp(y, b[2], "/tmp/repo/DGE_snakemake/results/R/meanVectorB2.csv")
+y_25 <- quartileNormalisation.dp(y, b[3], "/tmp/repo/DGE_snakemake/results/R/meanVectorB3.csv")
+y_5 <- quartileNormalisation.dp(y, b[4], "/tmp/repo/DGE_snakemake/results/R/meanVectorB4.csv")
+y_10 <- quartileNormalisation.dp(y, b[5], "/tmp/repo/DGE_snakemake/results/R/meanVectorB5.csv")
 
 filteredExpr <- cpm(y_qn, log=T)
 filteredExpr_05 <- cpm(y_05, log=T)

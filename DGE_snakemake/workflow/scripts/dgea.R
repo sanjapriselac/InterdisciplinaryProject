@@ -1,6 +1,6 @@
 #!/opt/conda/envs/R_env/bin/Rscript --vanilla
 # Sanja Priselac
-# 02/03/2021
+# 17/03/2021
 
 ##################
 library(ggplot2)
@@ -71,11 +71,11 @@ results.25 <- decideTests(fit2.25, p.value=0.05)
 results.5 <- decideTests(fit2.5, p.value=0.05) 
 results.10 <- decideTests(fit2.10, p.value=0.05) 
 
-genes.up <- list(qn = which(results@.Data[, 1]==1), dp0.5 = which(results.05@.Data[, 1]==1), dp1 = which(results.1@.Data[, 1]==1), 
-                 dp2.5 = which(results.25@.Data[, 1]==1), dp5 = which(results.5@.Data[, 1]==1), dp10 = which(results.10@.Data[, 1]==1))
+genes.up <- list(qn = which(results@.Data[, 1]==1), dp0.05 = which(results.05@.Data[, 1]==1), dp0.1 = which(results.1@.Data[, 1]==1), 
+                 dp1 = which(results.25@.Data[, 1]==1), dp5 = which(results.5@.Data[, 1]==1), dp10 = which(results.10@.Data[, 1]==1))
 
-genes.down <- list(qn = which(results@.Data[, 1]==-1), dp0.5 = which(results.05@.Data[, 1]==-1), dp1 = which(results.1@.Data[, 1]==-1), 
-                   dp2.5 = which(results.25@.Data[, 1]==-1), dp5 = which(results.5@.Data[, 1]==-1), dp10 = which(results.10@.Data[, 1]==-1))
+genes.down <- list(qn = which(results@.Data[, 1]==-1), dp0.05 = which(results.05@.Data[, 1]==-1), dp0.1 = which(results.1@.Data[, 1]==-1), 
+                   dp1 = which(results.25@.Data[, 1]==-1), dp5 = which(results.5@.Data[, 1]==-1), dp10 = which(results.10@.Data[, 1]==-1))
 
 ## Venn diagrams
 venn.diagram(genes.up[1:4], filename = "/tmp/repo/DGE_snakemake/results/plots/venn.up1.png", 
